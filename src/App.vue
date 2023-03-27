@@ -2,14 +2,14 @@
   <div class="app">
     <control-panel
       @sort="sortNumbers"
-      @elements="changeNumbers"
+      @elements="setNumbers"
       @scramble="
         () => {
           scramble(numbers);
           drawArray(numbers);
         }
       "
-      @delay="() => {}"
+      @delay="setDelay"
     ></control-panel>
     <canvas></canvas>
   </div>
@@ -27,6 +27,7 @@ export default {
       canvas: null,
       gc: null,
       delay: 2,
+      sorting: false,
     };
   },
   beforeMount() {
@@ -39,6 +40,7 @@ export default {
   },
   methods: {
     scramble(a) {
+      this.sorting = false;
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [a[i], a[j]] = [a[j], a[i]];
@@ -73,19 +75,37 @@ export default {
     },
 
     sortNumbers(sort) {
-      const animations = sort(this.numbers);
-      const id = setInterval(() => {
+      if (this.sorting) return;
+
+      this.sorting = true;
+      let animations = sort(this.numbers);
+      let id = setInterval(() => {
+        if (!this.sorting) return (animations = null);
+
         const cur_animation = animations.next();
-        this.drawArray(this.numbers, cur_animation.value);
-        if (cur_animation.done) clearInterval(id);
+        this.drawArray(this.numbers, cur_animation.value, "red");
+
+        if (cur_animation.done) {
+          clearInterval(id);
+          this.sorting = false;
+        }
       }, this.delay);
-      this.drawArray(this.numbers);
     },
-    changeNumbers(n) {
+    setNumbers(n) {
+      this.sorting = false;
       n = parseInt(n);
       this.numbers = this.fillArray(n);
       this.scramble(this.numbers);
       this.drawArray(this.numbers);
+    },
+    setDelay(delay) {
+      if (this.sorting) {
+        this.sorting = false;
+        this.drawArray(this.numbers);
+      }
+      if (this.sorting) return;
+      ``;
+      this.delay = delay;
     },
   },
 };

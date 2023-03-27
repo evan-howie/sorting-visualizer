@@ -4,7 +4,7 @@
       <div>
         <h1>Algorithm</h1>
         <div class="algorithms">
-          <button @click="$emit('sort')">Merge Sort</button>
+          <button @click="$emit('sort', merge)">Merge Sort</button>
           <button @click="$emit('sort', bubble)">Bubble Sort</button>
           <button>Insertion Sort</button>
           <button>Quick Sort</button>
@@ -14,14 +14,25 @@
         <h1>Elements</h1>
         <div class="elements">
           <div>
-            <label for="elements-slider">Number: </label>
+            <label for="elements">Number: </label>
             <input
               type="number"
               v-model="num_elements"
               min="1"
               :max="max_width"
-              name="elements-slider"
+              name="elements"
               @change="$emit('elements', num_elements)"
+            />
+          </div>
+          <div>
+            <label for="delay">Delay: </label>
+            <input
+              type="number"
+              v-model="delay"
+              min="0.5"
+              max="100"
+              name="delay"
+              @change="$emit('delay', delay)"
             />
           </div>
           <button @click="$emit('scramble')">Scramble</button>
@@ -38,6 +49,7 @@
 
 <script>
 import bubble from "@/static/algorithms/bubble.js";
+import merge from "@/static/algorithms/merge";
 
 export default {
   name: "ControlPanel",
@@ -45,6 +57,8 @@ export default {
     is_visible: true,
     num_elements: 100,
     bubble,
+    merge,
+    delay: 2,
   }),
   computed: {
     max_width() {
