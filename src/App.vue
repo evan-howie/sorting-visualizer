@@ -64,7 +64,7 @@ export default {
       this.gc.clearRect(0, 0, w, h);
 
       for (const [index, col] of a.entries()) {
-        this.gc.fillStyle = compare.includes(index) ? "red" : "black";
+        this.gc.fillStyle = compare.includes(index) ? "red" : "#1282a2";
         this.gc.fillRect(
           index * col_width,
           h - col * height_adj,
@@ -79,17 +79,44 @@ export default {
 
       this.sorting = true;
       let animations = sort(this.numbers);
-      let id = setInterval(() => {
-        if (!this.sorting) return (animations = null);
 
-        const cur_animation = animations.next();
-        this.drawArray(this.numbers, cur_animation.value, "red");
+      let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      let oscillator = audioCtx.createOscillator();
+      oscillator.connect(audioCtx.destination);
+      oscillator.type = "square";
+      oscillator.start();
 
-        if (cur_animation.done) {
-          clearInterval(id);
-          this.sorting = false;
-        }
-      }, this.delay);
+      const animate = () => {
+        const id = setTimeout(() => {
+          if (!this.sorting) {
+            oscillator.stop();
+            animations = null;
+            clearTimeout(id);
+            return;
+          }
+
+          const cur_animation = animations.next();
+
+          if (!cur_animation.done)
+            oscillator.frequency.value =
+              261.6 + (cur_animation.value.sound * 1047) / this.numbers.length; // value in hertz
+
+          this.drawArray(
+            this.numbers,
+            cur_animation.value?.compare ?? [],
+            "red"
+          );
+
+          if (cur_animation.done) {
+            oscillator.stop();
+            this.sorting = false;
+            clearTimeout(id);
+          }
+          requestAnimationFrame(animate);
+        }, this.delay);
+      };
+
+      animate(this.delay);
     },
     setNumbers(n) {
       this.sorting = false;
@@ -115,8 +142,8 @@ export default {
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
 
 :root {
-  --primary-bg: #daebe8;
-  --secondary-bg: #b7d7e8;
+  --primary-bg: #0a1128;
+  --secondary-bg: #001f54;
   /* #cfe0e8 */
   --primary-color: #ffffff;
   --button-color: #87bdd8;
@@ -129,6 +156,7 @@ export default {
 .app {
   background-color: var(--primary-bg);
   min-height: 100vh;
+  color: var(--primary-color);
 }
 
 canvas {

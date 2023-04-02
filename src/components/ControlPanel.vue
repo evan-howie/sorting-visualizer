@@ -6,8 +6,9 @@
         <div class="algorithms">
           <button @click="$emit('sort', merge)">Merge Sort</button>
           <button @click="$emit('sort', bubble)">Bubble Sort</button>
-          <button>Insertion Sort</button>
-          <button>Quick Sort</button>
+          <button @click="$emit('sort', insertion)">Insertion Sort</button>
+          <button @click="$emit('sort', quick)">Quick Sort</button>
+          <button @click="$emit('sort', bogo)">Bogo Sort</button>
         </div>
       </div>
       <div>
@@ -49,7 +50,10 @@
 
 <script>
 import bubble from "@/static/algorithms/bubble.js";
-import merge from "@/static/algorithms/merge";
+import merge from "@/static/algorithms/merge.js";
+import insertion from "@/static/algorithms/insertion.js";
+import quick from "@/static/algorithms/quick.js";
+import bogo from "@/static/algorithms/bogo.js";
 
 export default {
   name: "ControlPanel",
@@ -58,11 +62,20 @@ export default {
     num_elements: 100,
     bubble,
     merge,
+    insertion,
+    quick,
+    bogo,
     delay: 2,
   }),
   computed: {
     max_width() {
       return window.innerWidth - 200;
+    },
+  },
+  methods: {
+    toggleSound() {
+      this.sound = !this.sound;
+      this.$emit("sound");
     },
   },
 };
@@ -89,8 +102,10 @@ export default {
   text-align: center;
 }
 
-.controls > div > h1 {
+h1 {
   font-size: 16px;
+  display: inline-block;
+  padding-bottom: 12px;
 }
 
 .algorithms {
@@ -106,6 +121,7 @@ button {
   padding: 5px;
   border: 2px solid var(--primary-color);
   background-color: var(--button-light);
+  color: var(--primary-color);
 }
 
 button:hover {
@@ -129,5 +145,14 @@ button:hover {
 
 .visibility-btn:hover {
   cursor: pointer;
+}
+
+.sound {
+  padding-left: 12px;
+}
+
+.sound:hover {
+  cursor: pointer;
+  user-select: none;
 }
 </style>
