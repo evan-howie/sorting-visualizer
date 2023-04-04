@@ -9,13 +9,13 @@ function* quicksort(a, l, r) {
   let next_smallest = l - 1;
 
   for (let i = l; i < r; i++) {
-    yield { sound: a[i], compare: [i, next_smallest, r] };
+    yield [i, next_smallest, r];
     if (a[i] < pivot) {
       next_smallest++;
       [a[i], a[next_smallest]] = [a[next_smallest], a[i]];
     }
   }
-  yield { sound: a[next_smallest + 1], compare: [next_smallest + 1, r] };
+  yield [next_smallest + 1, r];
   [a[next_smallest + 1], a[r]] = [a[r], a[next_smallest + 1]];
 
   yield* quicksort(a, l, next_smallest);

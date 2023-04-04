@@ -4,7 +4,7 @@ export default function* (a) {
       if (a[j - 1] > a[j]) {
         [a[j - 1], a[j]] = [a[j], a[j - 1]]; // swap
       }
-      yield { sound: a[j - 1], compare: [j - 1, j] };
+      yield [j - 1, j];
     }
   }
 }

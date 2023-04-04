@@ -17,7 +17,7 @@ function* merge(a) {
     for (let i = left, j = midpoint, k = left; k < right; k++)
       if (i < midpoint) {
         if (j < right) {
-          yield { sound: a[i], compare: [i, j] };
+          yield [i, j];
           if (a[i] <= a[j])
             // stable
             b[k] = a[i++];
@@ -30,7 +30,7 @@ function* merge(a) {
       }
 
     for (let k = left; k < right; k++) {
-      yield { sound: a[k], compare: [k] };
+      yield [k];
       a[k] = b[k];
     }
   }

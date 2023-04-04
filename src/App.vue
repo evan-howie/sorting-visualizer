@@ -81,37 +81,31 @@ export default {
       let animations = sort(this.numbers);
 
       let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      let oscillator = audioCtx.createOscillator();
-      oscillator.connect(audioCtx.destination);
-      oscillator.type = "square";
-      oscillator.start();
+      let oscillators = this.createOscillatorNodes(audioCtx);
 
       const animate = () => {
         const id = setTimeout(() => {
-          if (!this.sorting) {
-            oscillator.stop();
-            animations = null;
+          const cur_animation = animations.next();
+
+          if (!this.sorting || cur_animation.done) {
+            oscillators.forEach((oscillator) => oscillator.stop());
             clearTimeout(id);
+            this.sorting = false;
+            this.drawArray(this.numbers);
+
             return;
           }
 
-          const cur_animation = animations.next();
-
           if (!cur_animation.done)
-            oscillator.frequency.value =
-              261.6 + (cur_animation.value.sound * 1047) / this.numbers.length; // value in hertz
+            for (let i = 0; i < cur_animation.value.length; i++) {
+              oscillators[i].connect(audioCtx.destination);
 
-          this.drawArray(
-            this.numbers,
-            cur_animation.value?.compare ?? [],
-            "red"
-          );
+              oscillators[i].frequency.value =
+                261.6 + (cur_animation.value[i] * 1047) / this.numbers.length; // between two octaves
+              console.log(oscillators[i].frequency);
+            } // value in hertz
 
-          if (cur_animation.done) {
-            oscillator.stop();
-            this.sorting = false;
-            clearTimeout(id);
-          }
+          this.drawArray(this.numbers, cur_animation.value ?? [], "red");
           requestAnimationFrame(animate);
         }, this.delay);
       };
@@ -133,6 +127,19 @@ export default {
       if (this.sorting) return;
       ``;
       this.delay = delay;
+    },
+    createOscillatorNodes(ctx) {
+      const a = [
+        ctx.createOscillator(),
+        ctx.createOscillator(),
+        ctx.createOscillator(),
+      ];
+
+      a.forEach((oscillator) => {
+        oscillator.type = "square";
+        oscillator.start();
+      });
+      return a;
     },
   },
 };

@@ -4,7 +4,7 @@ export default function* (a) {
     let j = i - 1;
 
     while (j >= 0 && a[j] > key) {
-      yield { sound: a[i], compare: [i, j] };
+      yield [i, j];
       a[j + 1] = a[j--];
     }
     a[j + 1] = key;
