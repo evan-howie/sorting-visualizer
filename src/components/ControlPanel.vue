@@ -115,12 +115,14 @@ h1 {
 .elements {
   display: flex;
   justify-content: space-around;
+  align-items: center;
 }
 
 button {
-  padding: 5px;
-  border: 2px solid var(--primary-color);
-  background-color: var(--button-light);
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--button-color);
   color: var(--primary-color);
 }
 

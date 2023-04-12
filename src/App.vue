@@ -5,22 +5,25 @@
       @elements="setNumbers"
       @scramble="
         () => {
+          numbers = fillArray(numbers.length);
           scramble(numbers);
           drawArray(numbers);
         }
       "
       @delay="setDelay"
     ></control-panel>
+    <sound-control :sound="sound" @toggle="toggleSound"></sound-control>
     <canvas></canvas>
   </div>
 </template>
 
 <script>
 import ControlPanel from "./components/ControlPanel.vue";
+import SoundControl from "./components/SoundControl.vue";
 
 export default {
   name: "App",
-  components: { "control-panel": ControlPanel },
+  components: { "control-panel": ControlPanel, "sound-control": SoundControl },
   data() {
     return {
       numbers: [],
@@ -28,6 +31,9 @@ export default {
       gc: null,
       delay: 2,
       sorting: false,
+      sound: false,
+      audioCtx: null,
+      oscillators: [],
     };
   },
   beforeMount() {
@@ -37,6 +43,8 @@ export default {
   mounted() {
     this.setupCanvas();
     this.drawArray(this.numbers);
+    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    this.oscillators = this.createOscillatorNodes(this.audioCtx);
   },
   methods: {
     scramble(a) {
@@ -46,9 +54,11 @@ export default {
         [a[i], a[j]] = [a[j], a[i]];
       }
     },
+
     fillArray(n) {
       return [...Array(n).keys()].map((i) => i + 1);
     },
+
     setupCanvas() {
       const canvas = document.querySelector("canvas");
       canvas.width = window.innerWidth - 200;
@@ -56,6 +66,7 @@ export default {
       this.canvas = canvas;
       this.gc = canvas.getContext("2d");
     },
+
     drawArray(a, compare = []) {
       const [w, h] = [this.canvas.width, this.canvas.height];
       const col_width = w / a.length;
@@ -80,15 +91,12 @@ export default {
       this.sorting = true;
       let animations = sort(this.numbers);
 
-      let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      let oscillators = this.createOscillatorNodes(audioCtx);
-
       const animate = () => {
         const id = setTimeout(() => {
           const cur_animation = animations.next();
 
           if (!this.sorting || cur_animation.done) {
-            oscillators.forEach((oscillator) => oscillator.stop());
+            this.oscillators.forEach((oscillator) => oscillator.disconnect());
             clearTimeout(id);
             this.sorting = false;
             this.drawArray(this.numbers);
@@ -96,15 +104,20 @@ export default {
             return;
           }
 
-          if (!cur_animation.done)
+          if (this.sound) {
             for (let i = 0; i < cur_animation.value.length; i++) {
-              oscillators[i].connect(audioCtx.destination);
-
-              oscillators[i].frequency.value =
+              this.oscillators[i].connect(this.audioCtx.destination);
+              this.oscillators[i].frequency.value =
                 261.6 + (cur_animation.value[i] * 1047) / this.numbers.length; // between two octaves
-              console.log(oscillators[i].frequency);
             } // value in hertz
-
+            for (
+              let i = cur_animation.value.length;
+              i < this.oscillators.length;
+              i++
+            ) {
+              this.oscillators[i].disconnect();
+            }
+          }
           this.drawArray(this.numbers, cur_animation.value ?? [], "red");
           requestAnimationFrame(animate);
         }, this.delay);
@@ -112,6 +125,7 @@ export default {
 
       animate(this.delay);
     },
+
     setNumbers(n) {
       this.sorting = false;
       n = parseInt(n);
@@ -119,6 +133,7 @@ export default {
       this.scramble(this.numbers);
       this.drawArray(this.numbers);
     },
+
     setDelay(delay) {
       if (this.sorting) {
         this.sorting = false;
@@ -128,6 +143,7 @@ export default {
       ``;
       this.delay = delay;
     },
+
     createOscillatorNodes(ctx) {
       const a = [
         ctx.createOscillator(),
@@ -140,6 +156,13 @@ export default {
         oscillator.start();
       });
       return a;
+    },
+
+    toggleSound() {
+      this.sound = !this.sound;
+      this.oscillators.forEach((oscillator) => {
+        if (!this.sound) oscillator.disconnect();
+      });
     },
   },
 };
